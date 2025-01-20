@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario de Ahorros Mensual</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body {
+font-family: 'Roboto', sans-serif;
+margin: 0;
+padding: 0;
+background-color: #f4f4f9;
+color: #333;
+}
+.container {
+max-width: 900px;
+margin: 20px auto;
+background: #fff;
+box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+border-radius: 8px;
+overflow: hidden;
+}
+.header {
+background: #4CAF50;
+color: #fff;
+text-align: center;
+padding: 20px;
+}
+.header h1 {
+margin: 0;
+font-size: 2em;
+}
+.summary {
+display: flex;
+justify-content: space-between;
+padding: 20px;
+background: #f9f9f9;
+}
+.summary div {
+flex: 1;
+margin: 0 10px;
+text-align: center;
+}
+.summary label {
+display: block;
+margin-bottom: 8px;
+font-weight: bold;
+font-size: 1.1em;
+}
+.summary input {
+width: 100%;
+padding: 10px;
+border: 1px solid #ccc;
+border-radius: 4px;
+font-size: 1em;
+}
+.calendar-container {
+position: relative;
+perspective: 1000px;
+}
+.calendar {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+gap: 10px;
+padding: 20px;
+opacity: 1;
+transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+position: relative;
+}
+.day {
+background: #fff;
+border: 1px solid #eee;
+padding: 15px;
+text-align: center;
+border-radius: 4px;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+transition: transform 0.2s ease;
+}
+.day:hover {
+transform: scale(1.05);
+}
+.day .date {
+font-size: 1.2em;
+font-weight: bold;
+margin-bottom: 10px;
+color: #4CAF50;
+}
+.day input {
+width: 100%;
+padding: 8px;
+border: 1px solid #ccc;
+border-radius: 4px;
+font-size: 1em;
+}
+.navigation {
+text-align: center;
+padding: 20px;
+background: #f9f9f9;
+}
+.navigation button {
+padding: 10px 20px;
+border: none;
+border-radius: 4px;
+background: #4CAF50;
+color: #fff;
+cursor: pointer;
+margin: 0 10px;
+font-size: 1em;
+transition: background 0.2s ease;
+}
+.navigation button:hover {
+background: #45a049;
+}
+.icon {
+width: 100px;
+display: block;
+margin: 20px auto;
+}
+.hidden {
+opacity: 0;
+transform: rotateX(-80deg) translateY(300px);
+transform-origin: top center;
+transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+</style>
+<script>
+function changeMonth(offset) {
+const calendar = document.querySelector('.calendar');
+const clone = calendar.cloneNode(true);
+clone.classList.add('hidden');
+calendar.parentNode.appendChild(clone);
+
+setTimeout(() => {
+calendar.classList.add('hidden');
+setTimeout(() => {
+const currentMonth = parseInt(document.getElementById('current-month').value);
+const newMonth = (currentMonth + offset + 12) % 12;
+document.getElementById('current-month').value = newMonth;
+updateCalendar(newMonth);
+calendar.classList.remove('hidden');
+calendar.parentNode.removeChild(clone);
+}, 800); // Tiempo de duración de la animación
+}, 100);
+}
+
+function updateCalendar(month) {
+const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const startAmounts = [157, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const calendar = document.querySelector('.calendar');
+let startAmount = startAmounts[month];
+
+if (month !== 0) {
+const previousMonthEnd = parseFloat(document.getElementById('fin').value) || 0;
+startAmount += previousMonthEnd;
+}
+
+document.getElementById('inicio').value = startAmount;
+
+calendar.innerHTML = '';
+
+for (let i = 1; i <= daysInMonth[month]; i++) {
+const dayDiv = document.createElement('div');
+dayDiv.classList.add('day');
+const savedValue = localStorage.getItem(`month${month}-day${i}`) || '';
+dayDiv.innerHTML = `
+<div class="date">${i}</div>
+<div><input type="text" class="daily-savings" placeholder="€ guardados" value="${savedValue}" oninput="saveValue(${month}, ${i}, this.value); updateTotal()"></div>
+`;
+calendar.appendChild(dayDiv);
+}
+}
+
+function saveValue(month, day, value) {
+localStorage.setItem(`month${month}-day${day}`, value);
+}
+
+function updateTotal() {
+const dailySavings = document.querySelectorAll('.daily-savings');
+let total = parseFloat(document.getElementById('inicio').value) || 0;
+dailySavings.forEach(input => {
+const value = parseFloat(input.value) || 0;
+total += value;
+});
+document.getElementById('fin').value = total.toFixed(2);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+updateCalendar(new Date().getMonth());
+});
+</script>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Calendario de Ahorros Mensual</h1>
+<img src="https://logos-world.net/wp-content/uploads/2020/11/Xbox-Logo-700x394.png" alt="Xbox Series S" class="icon">
+</div>
+
+<div class="summary">
+<div>
+<label for="inicio">Con cuánto empiezo el mes:</label>
+<input type="text" id="inicio" placeholder="€" readonly>
+</div>
+<div>
+<label for="meta">Xbox Series S:</label>
+<input type="text" id="meta" value="300.00" readonly>
+</div>
+<div>
+<label for="fin">Con cuánto termino el mes:</label>
+<input type="text" id="fin" placeholder="€" readonly>
+</div>
+</div>
+
+<div class="calendar-container">
+<div class="calendar">
+<!-- Las casillas se generan automáticamente -->
+</div>
+</div>
+
+<div class="navigation">
+<input type="hidden" id="current-month" value="0">
+<button onclick="changeMonth(-1)">Mes Anterior</button>
+<button onclick="changeMonth(1)">Mes Siguiente</button>
+</div>
+</div>
+</body>
+</html>
